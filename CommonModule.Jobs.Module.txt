@@ -1,0 +1,31 @@
+﻿Function ReadLinkContent(Number, UUID, n) Export
+	
+	Parameters = New Array;
+	Parameters.Add(Number);
+	Parameters.Add(UUID);
+	Parameters.Add(n);
+	
+	Job = BackgroundJobs.Execute("Jobs.RunScript", Parameters, New UUID, "" + Number + " " + UUID + " " + n);    
+	
+	Return Job;
+	
+EndFunction	
+
+Procedure RunScript(Number, UUID, n) Export 
+	
+	SrtingApp = """" + Service.GetR() + """ " + Service.GetWD() + "\s.R " + Number + " " + UUID + " " + n;
+	WriteLogEvent("GetHistory", EventLogLevel.Information, , , Number + Chars.LF + "Starting script s.R: " + Chars.LF + SrtingApp);
+	RunApp(SrtingApp, , );
+	FullFileName = Service.GetWD() + "\" + Number + "_" + UUID + " " + n + ".csv";
+	File = New File(FullFileName);
+	
+	If Not File.Exist() Then
+		
+		WriteLogEvent("GetHistory", EventLogLevel.Error, , , Number + Chars.LF + "Error in script s.R: " + Chars.LF + SrtingApp + Chars.LF + "File not found: " + FullFileName);
+		
+	EndIf;
+
+EndProcedure
+
+
+

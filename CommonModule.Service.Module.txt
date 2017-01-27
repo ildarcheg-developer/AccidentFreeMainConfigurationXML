@@ -1,0 +1,338 @@
+﻿Function GetWD() Export
+	
+	WD = "C:\PUB\ForR";
+	
+	Return WD;
+	
+EndFunction
+
+Function GetR() Export
+	
+	RPath = "C:\Program Files\R\R-3.3.2\bin\Rscript.exe";
+	
+	Return RPath;
+	
+EndFunction
+
+Function GetCaptionList() Export
+	
+	VT = New ValueTable;
+	VT.Columns.Add("Name");
+	VT.Columns.Add("English");
+	VT.Columns.Add("Arabic");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "ReportNumber";
+	NewRow.English = ("Report Number");
+	NewRow.Arabic = ("رقم التقرير");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "ReportDate";
+	NewRow.English = ("Report Date");
+	NewRow.Arabic = ("تاريغ التقرير");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "Time";
+	NewRow.English = ("Time");
+	NewRow.Arabic = ("الوقت");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "AccidentType";
+	NewRow.English = ("Accident Type");
+	NewRow.Arabic = ("نوع الحادث");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "CrossingStreet";
+	NewRow.English = ("Crossing Street");
+	NewRow.Arabic = ("الشارع المقابل");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "Distancefromfirstintersection";
+	NewRow.English = ("Distance from first intersection");
+	NewRow.Arabic = ("المسافة من اول تقاطع");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "AccidientStatus";
+	NewRow.English = ("Accidient Status");
+	NewRow.Arabic = ("حالة الحادث");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "Intersection";
+	NewRow.English = ("Intersection");
+	NewRow.Arabic = ("التقاطع");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "Light";
+	NewRow.English = ("Light");
+	NewRow.Arabic = ("الإضاءة");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "LocationType";
+	NewRow.English = ("Location Type");
+	NewRow.Arabic = ("نوع المنطقة");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "Emirate";
+	NewRow.English = ("Emirate");
+	NewRow.Arabic = ("الإمارة");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "ReportType";
+	NewRow.English = ("Report Type");
+	NewRow.Arabic = ("نوع التقرير");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "Year";
+	NewRow.English = ("Year");
+	NewRow.Arabic = ("السنة");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "ServiceCenter";
+	NewRow.English = ("Service Center");
+	NewRow.Arabic = ("مركز الخدمة");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "SpeedLimit";
+	NewRow.English = ("Speed Limit");
+	NewRow.Arabic = ("حد السرعة");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "Street";
+	NewRow.English = ("Street");
+	NewRow.Arabic = ("الشارع");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "StreetCondition";
+	NewRow.English = ("Street Condition");
+	NewRow.Arabic = ("ظروف خاصة للشارع");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "Nearto";
+	NewRow.English = ("Near to");
+	NewRow.Arabic = ("المكان بالقرب من");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "AccidentReasons";
+	NewRow.English = ("Accident Reasons");
+	NewRow.Arabic = ("سبب الحادث");
+	
+	NewRow = VT.Add();
+	NewRow.Name = "DamegesParts";
+	NewRow.English = ("Dameges Parts");
+	NewRow.Arabic = ("الأجزاء المتضررة");
+	
+	Return VT;
+	
+EndFunction
+
+Function GetCaption(VT, Name, Column = "English")
+
+	Row = VT.Find(Name, Column);
+	
+	Return ?(Row = Undefined, Row, Row.Name);
+	
+EndFunction
+
+Function GetHistory(Number, Lang, RequestDate) Export
+
+	If Lang = "ar" Then
+		Language = "Arabic";
+	Else 
+		Language = "English";
+	EndIf;
+
+	CaptionList = GetCaptionList();
+	
+	VT = New ValueTable;
+	VT.Columns.Add("Number");
+	
+	For Each Caption In CaptionList Do
+		
+		VT.Columns.Add(Caption.Name);
+
+	EndDo;
+
+	UUID = TrimAll(New UUID);
+	
+	StringApp = Path.ScriptR(Number, UUID, Language);
+	WriteLogEvent("GetHistory", EventLogLevel.Information, , , Number + Chars.LF + "Starting script p.R: " + Chars.LF + StringApp);
+	RunApp(StringApp, , True);
+	
+	FullFileName = Path.Links(Number, UUID);
+	File = New File(FullFileName);
+	
+	If Not File.Exist() Then
+		
+		WriteLogEvent("GetHistory", EventLogLevel.Error, , , Number + Chars.LF + "Error in script p.R: " + Chars.LF + StringApp + Chars.LF + "File not found: " + FullFileName);
+		
+		LogFileName = Path.Logs(Number, UUID, RequestDate);
+		ValueToFile(LogFileName, VT);
+		
+		Return VT;
+		
+	EndIf;
+	
+	TextDocument = New TextDocument;
+	TextDocument.Read(File.FullName, "windows-1256");
+	Text = TextDocument.GetText();
+	
+	LinksArray = StringFunctionsClientServer.SplitStringIntoSubstringArray(Text, Chars.LF, True);
+	
+	If LinksArray.Count() = 0 Then
+		
+		LogFileName = Path.Logs(Number, UUID, RequestDate);
+		ValueToFile(LogFileName, VT);
+		
+		Return VT;
+		
+	EndIf;
+	
+	JobsArray = New Array;
+	NumberOfLinks = LinksArray.Count();
+	
+	For n = 1 To NumberOfLinks Do
+		
+		If Not TrimAll(LinksArray[n-1]) = "" Then 
+			
+			StringApp = Path.ScriptS(Number, UUID, n, Language);
+			WriteLogEvent("GetHistory", EventLogLevel.Information, , , Number + Chars.LF + "Starting script s.R: " + Chars.LF + StringApp);
+			RunApp(StringApp, , );
+			
+		EndIf;
+		
+	EndDo;
+	
+	NotFinished = True;
+	FinishedTime = CurrentDate() + 20;
+	
+	NumberOfChecks = 0;
+	
+	While NotFinished And FinishedTime >= CurrentDate() Do
+		
+		NumberOfChecks = NumberOfChecks + 1;
+		Files = FindFiles(SessionParameters.ScriptPath, Number + "_" + UUID + "_*.csv");	
+		
+		If Files.Count() = NumberOfLinks Then
+			
+			NotFinished = False;
+			
+		EndIf;
+		
+	EndDo;
+	
+	For Each File In Files Do
+		
+		TextDocument = New TextDocument;
+		TextDocument.Read(File.FullName, "windows-1256");
+		Text = TextDocument.GetText();
+		
+		Array = StringFunctionsClientServer.SplitStringIntoSubstringArray(Text, Chars.LF);
+		NewLine = VT.Add();
+		NewLine.Number = Number;
+		
+		For Each Str In Array Do
+			
+			Str = StrReplace(Str, """", "");
+			
+			ArrayCaption = StringFunctionsClientServer.SplitStringIntoSubstringArray(Str, ";");
+			
+			If ArrayCaption.Count() < 3 Then
+				
+				Continue;
+				
+			EndIf;
+			
+			Column = GetCaption(CaptionList, ArrayCaption[1], Language);
+			
+			If Not Column = Undefined Then
+				
+				NewLine[Column] = ArrayCaption[2];
+				
+			EndIf;
+						
+		EndDo;
+		
+		DeleteFiles(File.FullName);
+		
+	EndDo;
+	
+	LogFileName = Path.Logs(Number, UUID, RequestDate);
+	ValueToFile(LogFileName, VT);
+	
+	Return VT;
+	
+EndFunction 
+
+Function GetHistory22(Number, Lang, RequestDate) Export
+		
+	// links request
+	ExitCode = Undefined;
+	If Lang = "ar" Then
+		StringApp = """" + GetR() + """ " + GetWD() + "\templateScriptAR.R " + Number;
+		Language = "Arabic";
+	Else 
+		StringApp = """" + GetR() + """ " + GetWD() + "\templateScript.R " + Number;
+		Language = "English";
+	EndIf;
+
+	WriteLogEvent("GetHistory", EventLogLevel.Information, , , Number + Chars.LF + "Starting script R: " + StringApp);
+		
+	RunApp(StringApp, , True, ExitCode);
+	
+	WriteLogEvent("GetHistory", EventLogLevel.Information, , , Number + Chars.LF + "Internal script");
+	
+	Files = FindFiles(GetWD(), Number + "_history_*");
+	
+	CaptionList = GetCaptionList();
+	
+	VT = New ValueTable;
+	VT.Columns.Add("Number");
+	
+	For Each Caption In CaptionList Do
+		
+		VT.Columns.Add(Caption.Name);
+
+	EndDo;
+	
+	For Each File In Files Do
+		
+		TextDocument = New TextDocument;
+		TextDocument.Read(File.FullName, "windows-1256");
+		Text = TextDocument.GetText();
+		
+		Array = StringFunctionsClientServer.SplitStringIntoSubstringArray(Text, Chars.LF);
+		NewLine = VT.Add();
+		NewLine.Number = Number;
+		
+		For Each Str In Array Do
+			
+			Str = StrReplace(Str, """", "");
+			
+			ArrayCaption = StringFunctionsClientServer.SplitStringIntoSubstringArray(Str, ";");
+			
+			If ArrayCaption.Count() < 3 Then
+				
+				Continue;
+				
+			EndIf;
+			
+			Column = GetCaption(CaptionList, ArrayCaption[1], Language);
+			
+			If Not Column = Undefined Then
+				
+				NewLine[Column] = ArrayCaption[2];
+				
+			EndIf;
+						
+		EndDo;
+		
+		DeleteFiles(File.FullName);
+		
+	EndDo;
+	
+	LogFileName = GetWD() + "\log\" + Number + "_" + Format(RequestDate, "DF=yyyyMMddHHmmss") + "_" + TrimAll(New UUID()) + ".txt";
+	ValueToFile(LogFileName, VT);
+	
+	Return VT;
+	
+EndFunction

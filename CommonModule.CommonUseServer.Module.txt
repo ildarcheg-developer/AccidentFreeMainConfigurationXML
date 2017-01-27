@@ -1,0 +1,10 @@
+﻿Procedure SetSessionParameters() Export
+
+	Conf = New TextDocument;
+	Conf.Read("C:\Projects\AccidentFree\AccidentFree.Conf");
+	
+	SessionParameters.RPath = TrimAll(Conf.GetLine(1));
+	SessionParameters.ScriptPath = TrimAll(Conf.GetLine(2));
+	SessionParameters.LogPath = TrimAll(Conf.GetLine(3));
+
+EndProcedure 

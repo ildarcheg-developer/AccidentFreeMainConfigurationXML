@@ -1,0 +1,6 @@
+﻿
+Procedure SessionParametersSetting(RequiredParameters)
+	
+	CommonUseServer.SetSessionParameters();
+	
+EndProcedure

@@ -1,0 +1,56 @@
+﻿Function GetWD() Export
+	
+	WD = "C:\PUB\ForR";
+	
+	Return WD;
+	
+EndFunction
+
+Function GetR() Export
+	
+	RPath = "C:\Program Files\R\R-3.3.2\bin\Rscript.exe";
+	
+	Return RPath;
+	
+EndFunction
+
+Function ScriptR(Number, UUID, Language) Export
+	
+	If Language = "Arabic" Then
+		Str = """" + SessionParameters.RPath + """ " + SessionParameters.ScriptPath + "\pAR.R " + Number + " " + UUID + " " + SessionParameters.ScriptPath + "\";	
+	Else
+		Str = """" + SessionParameters.RPath + """ " + SessionParameters.ScriptPath + "\p.R " + Number + " " + UUID + " " + SessionParameters.ScriptPath + "\";		
+	EndIf;
+	
+	Return Str;
+	
+EndFunction
+
+Function ScriptS(Number, UUID, n, Language) Export
+	
+	If Language = "Arabic" Then
+		Str = """" + SessionParameters.RPath + """ " + SessionParameters.ScriptPath + "\sAR.R " + Number + " " + UUID + " " + n + " " + SessionParameters.ScriptPath + "\";
+	Else
+		Str = """" + SessionParameters.RPath + """ " + SessionParameters.ScriptPath + "\s.R " + Number + " " + UUID + " " + n + " " + SessionParameters.ScriptPath + "\";
+	EndIf;
+	
+	Return Str;
+	
+EndFunction
+
+Function Links(Number, UUID) Export
+	
+	Str = SessionParameters.ScriptPath + "\" + Number + "_" + UUID + "_links.txt";
+	
+	Return Str;
+	
+EndFunction
+
+Function Logs(Number, UUID, RequestDate) Export
+	
+	Str = SessionParameters.LogPath + "\" + Number + "_" + UUID + "_" + Format(RequestDate, "DF=yyyyMMddHHmmss") + ".txt";
+
+	Return Str;
+	
+EndFunction
+	

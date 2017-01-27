@@ -1,0 +1,109 @@
+﻿
+Procedure RunPause(Shell, Timeout)
+
+ Shell.Run("ping 127.0.0.1 -n "+TrimAll(Number(Timeout)+1),0,1);
+
+EndProcedure// ТаймаутСкрипта()
+
+Procedure Pause()
+ 
+ Shell = New COMObject("WScript.Shell");
+ 
+ RunPause(Shell, 10);
+ 
+EndProcedure
+
+Function getGET(Request)
+	
+	//Pause();
+	
+	RequestDate = CurrentDate();
+	
+	ChassisNumber = Request.QueryOptions.Get("chassisnumber");
+	Type = Request.QueryOptions.Get("type");
+	Lang = Request.QueryOptions.Get("lang");
+	Lang = Left(Lang, 2);
+	Lang = ?(Lang = Undefined, "en", Lang);
+	//Lang = "ar";
+	
+	Response = New HTTPServiceResponse(200);
+		
+	BodyStructureResponse = New Structure;
+	BodyStructureResponse.Insert("Error", "");
+	BodyStructureResponse.Insert("VT", New ValueTable);
+	BodyStructureResponse.Insert("CaptionList", Service.GetCaptionList());
+	BodyStructureResponse.Insert("WebResult", "");
+	
+	If ChassisNumber = Undefined Then
+		
+		//ERROR
+		BodyStructureResponse.Error = "Chassis number is not provided.";	
+		
+	Else
+		
+		Try 
+			
+			//WORK
+			ChassisNumber = "JM7GH32F891120698";
+			BodyStructureResponse.VT = Service.GetHistory(ChassisNumber, Lang, RequestDate);
+			
+			WebResult = "Chassis Number: " + ChassisNumber;
+			
+			If BodyStructureResponse.VT.Count() = 0 Then
+				
+				WebResult = WebResult + Chars.LF + "No accident history found.";	
+				
+			Else
+				
+				For Each Record In BodyStructureResponse.VT Do
+					
+					WebResult = WebResult + Chars.LF + Record.ReportDate + " " + Record.Emirate;	
+					
+				EndDo;
+				
+			EndIf;
+			
+			BodyStructureResponse.WebResult = WebResult;
+			
+		Except
+			
+			//ERROR
+			ErrorDescription = ErrorDescription();
+			Commentaries = "" + ChassisNumber + Chars.LF + Format(RequestDate, "DF=yyyyMMddHHmmss") + Chars.LF + ErrorDescription; 
+			WriteLogEvent("HistoryGet", EventLogLevel.Error, , , Commentaries, );
+			BodyStructureResponse.Insert("Error", "Please try again late.");
+			
+		EndTry;
+		
+	EndIf;
+	
+	BodyAsString = Undefined;
+	
+	If Type = "web" Then
+		
+		If ValueIsFilled(BodyStructureResponse.Error) Then
+			
+			BodyAsString = BodyStructureResponse.Error;
+			
+		Else
+			
+			BodyAsString = BodyStructureResponse.WebResult;
+			
+		EndIf;		
+		
+	ElsIf Type = "mob" Then
+		
+		BodyAsString = Serialization.GetTransferString(BodyStructureResponse);
+		BodyAsString = Serialization.RemoveValueTag(BodyAsString);
+		
+	EndIf;		
+	
+	If Not BodyAsString = Undefined Then
+		
+		Response.SetBodyFromString(BodyAsString);
+		
+	EndIf;
+	
+	Return Response;
+	
+EndFunction
