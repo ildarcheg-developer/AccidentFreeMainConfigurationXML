@@ -1,5 +1,4 @@
-﻿
-Procedure RunPause(Shell, Timeout)
+﻿Procedure RunPause(Shell, Timeout)
 
  Shell.Run("ping 127.0.0.1 -n "+TrimAll(Number(Timeout)+1),0,1);
 
@@ -44,7 +43,8 @@ Function getGET(Request)
 		Try 
 			
 			//WORK
-			ChassisNumber = "JM7GH32F891120698";
+			
+			
 			BodyStructureResponse.VT = Service.GetHistory(ChassisNumber, Lang, RequestDate);
 			
 			WebResult = "Chassis Number: " + ChassisNumber;
@@ -64,6 +64,7 @@ Function getGET(Request)
 			EndIf;
 			
 			BodyStructureResponse.WebResult = WebResult;
+			
 			
 		Except
 			
@@ -103,6 +104,7 @@ Function getGET(Request)
 		Response.SetBodyFromString(BodyAsString);
 		
 	EndIf;
+	
 	
 	Return Response;
 	
