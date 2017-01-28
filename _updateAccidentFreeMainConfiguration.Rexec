@@ -1,28 +1,7 @@
-#args <- commandArgs(TRUE)
-#rPath <- as.character(args[1])
-#print(rPath)
-files <- list.files(".", "*.txt")
-found = FALSE
-for(i in 1:length(files)){
-	fileName <- files[i]
-	#print(fileName)
-	#print(file.info(fileName))
-	Sys.chmod(fileName, mode = "777")
-	#print(file.info(fileName))
-	codeLines <- readLines(fileName, encoding = "UTF-8", warn = FALSE)
-	#print("lines read")
-	#print(codeLines)
-	x <- grep("//EXCLUDE FROM PRODUCTION", codeLines)
-	if(!length(x)==0){
-		print(fileName)
-		print(codeLines[x])
-		codeLines <- codeLines[-x]
-		writeLines(codeLines, fileName, useBytes = TRUE)
-		print(fileName)
-		found = TRUE
-	}
-}
-if(found == FALSE){
-	print("Nothing to exclude")
-}
-Sys.sleep(5)
+fileName <- "Configuration.xml"
+codeLines <- readLines(fileName, encoding = "UTF-8", warn = FALSE)
+codeLines <- gsub(" -TEST-", "", codeLines)
+codeLines <- gsub("-TEST-", "", codeLines)
+writeLines(codeLines, fileName, useBytes = TRUE)
+print("-TEST- is removed")
+Sys.sleep(3)

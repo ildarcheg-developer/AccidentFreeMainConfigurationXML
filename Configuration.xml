@@ -32,7 +32,7 @@
 			<Synonym>
 				<v8:item>
 					<v8:lang>en</v8:lang>
-					<v8:content>Accident free main</v8:content>
+					<v8:content>Accident free main -TEST-</v8:content>
 				</v8:item>
 			</Synonym>
 			<Comment/>
@@ -45,7 +45,7 @@
 			<ScriptVariant>English</ScriptVariant>
 			<DefaultRoles/>
 			<Vendor/>
-			<Version>1.0.1</Version>
+			<Version>1.0.2</Version>
 			<UpdateCatalogAddress/>
 			<IncludeHelpInContents>false</IncludeHelpInContents>
 			<UseManagedFormInOrdinaryApplication>false</UseManagedFormInOrdinaryApplication>
@@ -127,6 +127,9 @@
 			<CommonModule>Jobs</CommonModule>
 			<CommonModule>Path</CommonModule>
 			<CommonModule>CommonUseServer</CommonModule>
+			<CommonModule>T</CommonModule>
+			<CommonModule>TServer</CommonModule>
+			<CommonModule>TServerReusable</CommonModule>
 			<HTTPService>history</HTTPService>
 		</ChildObjects>
 	</Configuration>
