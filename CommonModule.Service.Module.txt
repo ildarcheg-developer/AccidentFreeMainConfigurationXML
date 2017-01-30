@@ -203,14 +203,25 @@ Function GetHistory(Number, Lang, RequestDate) Export
 	EndDo;
 	
 	NotFinished = True;
-	FinishedTime = CurrentDate() + 20;
+	FinishedTime = CurrentDate() + 30;
 	
 	NumberOfChecks = 0;
+	
+	FilesReady = New Array;
 	
 	While NotFinished And FinishedTime >= CurrentDate() Do
 		
 		NumberOfChecks = NumberOfChecks + 1;
 		Files = FindFiles(SessionParameters.ScriptPath, Number + "_" + UUID + "_*.csv");	
+		
+		For Each F in Files Do
+			
+			If FilesReady.Find(F.Name) = Undefined Then
+				FilesReady.Add(F.Name);
+				WriteLogEvent("GetHistory", EventLogLevel.Information, , , Number + Chars.LF + "Got result: " + F.Name);
+			EndIf;
+			
+		EndDo;
 		
 		If Files.Count() = NumberOfLinks Then
 			
